@@ -31,9 +31,8 @@ Il permet d'importer un syllabus, de générer automatiquement un plan de cours 
 ## ⚙️ Installation
 
 ### Prérequis
-*   PHP 8.2+
-*   Composer
-*   Symfony CLI
+*   Docker
+*   Docker Compose
 
 ### Étapes
 
@@ -43,12 +42,7 @@ Il permet d'importer un syllabus, de générer automatiquement un plan de cours 
     cd assistant-pedagogique
     ```
 
-2.  **Installer les dépendances**
-    ```bash
-    composer install
-    ```
-
-3.  **Configurer l'environnement**
+2.  **Configurer l'environnement**
     Dupliquez le fichier `.env` en `.env.local` et ajoutez votre clé API Groq (gratuite) :
     ```dotenv
     # .env.local
@@ -56,25 +50,29 @@ Il permet d'importer un syllabus, de générer automatiquement un plan de cours 
     GROQ_MODEL=llama-3.3-70b-versatile
     ```
 
-4.  **Préparer la base de données**
+3.  **Lancer les conteneurs**
     ```bash
-    php bin/console doctrine:database:create
-    php bin/console doctrine:migrations:migrate
+    docker compose up -d --build
     ```
 
-5.  **Compiler les assets (Tailwind)**
+4.  **Installer les dépendances**
     ```bash
-    php bin/console tailwind:build
+    docker compose exec app composer install
+    ```
+
+5.  **Préparer la base de données**
+    ```bash
+    docker compose exec app php bin/console doctrine:migrations:migrate
+    ```
+
+6.  **Compiler les assets (Tailwind)**
+    ```bash
+    docker compose exec app php bin/console tailwind:build
     # Ou pour le mode watch :
-    # php bin/console tailwind:build --watch
+    # docker compose exec app php bin/console tailwind:build --watch
     ```
 
-6.  **Lancer le serveur**
-    ```bash
-    symfony server:start
-    ```
-
-Accédez à l'application sur `http://127.0.0.1:8000`.
+Accédez à l'application sur `http://localhost`.
 
 ---
 
@@ -93,7 +91,7 @@ Accédez à l'application sur `http://127.0.0.1:8000`.
 
 Le projet inclut des tests unitaires et fonctionnels (si implémentés).
 ```bash
-php bin/console test
+docker compose exec app php bin/console test
 ```
 
 ---

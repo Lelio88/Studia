@@ -1,26 +1,53 @@
-version: "3.7"
 services:
-    database:
-        image: "mariadb:latest"
-        environment:
-            MYSQL_ROOT_PASSWORD: password
-            MYSQL_DATABASE: main
-        ports:
-            - "3306:3306"
-    phpmyadmin:
-        image: phpmyadmin/phpmyadmin:latest
-        depends_on:
-            - database
-        environment:
-            PMA_HOST: database
-            PMA_PORT: "3306"
-        ports:
-            - "8080:80"
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "80:80" # HTTP
+      # - "443:443" # HTTPS (décommenter si besoin de SSL local)
+    volumes:
+      - .:/app
+      - /app/var
+    environment:
+      SERVER_NAME: :80
+      # Connexion à la base de données définie ci-dessous
+      DATABASE_URL: "mysql://root:password@database:3306/main?serverVersion=10.11.2-MariaDB&charset=utf8mb4"
+      # Configuration Mailer
+      MAILER_DSN: "smtp://mailer:1025"
+    depends_on:
+      - database
+      - mailer
 
-    defi:
-        image: "mysql:latest"
-        environment:
-            MYSQL_ROOT_PASSWORD: password
-            MYSQL_DATABASE: main
-        ports:
-            - "3307:3306" # Changed to 3307 to avoid conflict!
+  database:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: main
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  pma:
+    image: phpmyadmin/phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: database
+    ports:
+      - "8080:80"
+    depends_on:
+      - database
+
+  mailer:
+    image: axllent/mailpit
+    restart: unless-stopped
+    ports:
+      - "1025"
+      - "8025"
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
+volumes:
+  db_data:
