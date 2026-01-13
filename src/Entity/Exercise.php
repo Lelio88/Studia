@@ -10,7 +10,9 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\DBAL\Types\Types; // Add import
 
 #[ORM\Entity(repositoryClass: ExerciseRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    security: "is_granted('ROLE_TEACHER') and object.getSession().getCoursePlan().getSyllabus().getOwner() == user"
+)]
 class Exercise
 {
     #[ORM\Id]

@@ -12,7 +12,9 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 
 #[ORM\Entity(repositoryClass: CoursePlanRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    security: "is_granted('ROLE_TEACHER') and object.getSyllabus().getOwner() == user"
+)]
 class CoursePlan
 {
     #[ORM\Id]

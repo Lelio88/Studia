@@ -178,7 +178,7 @@
 
         try {
             // Appel sans ID pour le mode généraliste
-            const response = await fetch('/ai/chat/', {
+            const response = await fetch('/ai/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: message })

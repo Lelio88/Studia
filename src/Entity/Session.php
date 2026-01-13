@@ -11,7 +11,9 @@ use ApiPlatform\Metadata\ApiResource;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: SessionRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    security: "is_granted('ROLE_TEACHER') and object.getCoursePlan().getSyllabus().getOwner() == user"
+)]
 class Session
 {
     #[ORM\Id]

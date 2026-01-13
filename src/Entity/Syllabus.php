@@ -13,7 +13,9 @@ use Doctrine\ORM\Mapping as ORM;
 
 
 #[ORM\Entity(repositoryClass: SyllabusRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    security: "is_granted('ROLE_TEACHER') and object.getOwner() == user"
+)]
 class Syllabus
 {
 
