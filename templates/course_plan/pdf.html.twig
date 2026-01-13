@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ coursePlan.title }}</title>
+    <style>
+        body { font-family: sans-serif; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .session { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; page-break-inside: avoid; }
+        .session-title { background-color: #f0f0f0; padding: 5px; font-weight: bold; }
+        ul { margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ coursePlan.title }}</h1>
+        <p>Généré le {{ "now"|date("d/m/Y") }}</p>
+    </div>
+
+    {% for session in coursePlan.sessions %}
+        <div class="session">
+            <div class="session-title">Séance {{ session.indexNumber }}: {{ session.title }}</div>
+            <p><strong>Durée:</strong> {{ session.plannedDurationMinutes }} min</p>
+            
+            <h4>Objectifs</h4>
+            <ul>
+                {% for obj in session.objectives %}
+                    <li>{{ obj }}</li>
+                {% endfor %}
+            </ul>
+
+            <h4>Contenu</h4>
+            <ul>
+                {% for content in session.contents %}
+                    <li>{{ content }}</li>
+                {% endfor %}
+            </ul>
+
+            <h4>Activités</h4>
+            <ul>
+                {% for activity in session.activities %}
+                    <li>{{ activity }}</li>
+                {% endfor %}
+            </ul>
+
+            {% if session.resources is not empty %}
+            <h4>Ressources</h4>
+            <ul>
+                {% for res in session.resources %}
+                    <li>{{ res }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+
+            {% if session.isDone and session.actualNotes %}
+            <div style="background-color: #fff8e1; padding: 10px; margin-top: 10px; border: 1px solid #ffe0b2;">
+                <strong>Compte-rendu de séance :</strong>
+                <p style="margin: 5px 0;">{{ session.actualNotes }}</p>
+            </div>
+            {% endif %}
+
+            {% if session.exercises is not empty %}
+            <h4>Exercices</h4>
+            <ul>
+                {% for exo in session.exercises %}
+                    <li>
+                        <strong>{{ exo.title }}</strong> ({{ exo.difficulty }})<br>
+                        <em>{{ exo.instruction }}</em>
+                    </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+    {% endfor %}
+</body>
+</html>

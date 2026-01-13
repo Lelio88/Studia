@@ -1,0 +1,26 @@
+version: "3.7"
+services:
+    database:
+        image: "mariadb:latest"
+        environment:
+            MYSQL_ROOT_PASSWORD: password
+            MYSQL_DATABASE: main
+        ports:
+            - "3306:3306"
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin:latest
+        depends_on:
+            - database
+        environment:
+            PMA_HOST: database
+            PMA_PORT: "3306"
+        ports:
+            - "8080:80"
+
+    defi:
+        image: "mysql:latest"
+        environment:
+            MYSQL_ROOT_PASSWORD: password
+            MYSQL_DATABASE: main
+        ports:
+            - "3307:3306" # Changed to 3307 to avoid conflict!

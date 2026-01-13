@@ -1,0 +1,49 @@
+Tu es un expert en pédagogie et en structuration de parcours de formation.
+
+Données d'entrée :
+- Syllabus analysé (compétences, thèmes, prérequis, etc.)
+- Nombre de séances
+- Durée par séance
+- Niveau des étudiants
+
+<SYLLABUS_ANALYSE>
+{{ syllabus_analysis_json }}
+</SYLLABUS_ANALYSE>
+
+Paramètres :
+- nombre_seances = {{ nombre_seances }}
+- duree_par_seance_heures = {{ duree_par_seance_heures }}
+- niveau_etudiants = "{{ niveau_etudiants }}"
+
+Objectif :
+Générer un PLAN DE COURS structuré, avec :
+- un plan général du module
+- la liste des séances, avec pour chacune :
+  - titre
+  - objectifs
+  - contenus
+  - activités (exercices, mini-projets, discussions...)
+  - ressources suggérées
+  - durée prévue (en minutes)
+- une proposition de modalités d'évaluation + critères principaux.
+
+Réponds AU FORMAT JSON STRICT :
+
+{
+  "plan_general": "...",
+  "evaluation": {
+    "modalites": ["..."],
+    "criteres": ["..."]
+  },
+  "sessions": [
+    {
+      "index": 1,
+      "titre": "...",
+      "objectifs": ["..."],
+      "contenus": ["..."],
+      "activites": ["..."],
+      "ressources": ["..."],
+      "duree_prevue_minutes": 180
+    }
+  ]
+}

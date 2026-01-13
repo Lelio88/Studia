@@ -1,0 +1,33 @@
+# # Docker
+# image: node:16.15-alpine3.14
+
+# # definition des étapes
+# stages:
+#     - test
+#     - deploy
+
+# # définition des jobs
+# test_job:
+#     stage: test
+#     script:
+#         - npm install --force
+#         - npm run build
+#         # - allow_failure: true (permet de ne pas faire échouer le pipeline si le job échoue) ! à utiliser avec précaution !
+
+# # l'étape de pages qui se déclenche pendant le stage de deploy
+# pages:
+#     stage: deploy
+#     script:
+#         - npm install --force
+#         - npm run build
+#         - mv ./build ./public
+#     # Norme pour déployer des pages statiques sur GitLab Pages
+
+#     # Les données que l'on souhaite conserver une fois le job terminé
+#     artifacts:
+#         paths:
+#             - public
+#     # Si only alors déploiement uniquement sur les branches spécifiées. Si pas de only, déploiement sur toutes les branches
+#     only:
+#         # possibilité d'appeller release, main, master ou une autre branche
+#         - pages

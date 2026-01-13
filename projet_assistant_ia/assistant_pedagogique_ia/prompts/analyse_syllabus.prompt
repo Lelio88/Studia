@@ -1,0 +1,24 @@
+Tu es un expert en pédagogie et en ingénierie de la formation.
+
+On te fournit le syllabus d'un cours dans le champ <SYLLABUS>.
+
+<SYLLABUS>
+{{ syllabus_raw_text }}
+</SYLLABUS>
+
+Ta tâche :
+1. Identifier les COMPÉTENCES principales.
+2. Identifier les THÉMATIQUES / CHAPITRES majeurs.
+3. Identifier les PRÉREQUIS.
+4. Proposer une durée globale approximative si elle n'est pas claire.
+5. Détecter le NIVEAU visé (débutant / intermédiaire / avancé).
+
+Réponds AU FORMAT JSON STRICT, sans autre texte :
+
+{
+  "competences": ["..."],
+  "themes": ["..."],
+  "prerequisites": ["..."],
+  "estimated_total_hours": 24,
+  "target_level": "intermediate"
+}

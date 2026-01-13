@@ -1,0 +1,374 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ coursePlan.title }}{% endblock %}
+
+{% block body %}
+<div class="min-h-full bg-slate-50 font-sans text-slate-900">
+    <!--Navbar Identique Dashboard -->
+    <nav class="bg-blue-900 shadow-md">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="flex h-16 items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-white/10 p-2 rounded text-white font-bold tracking-widest text-xs uppercase">AP</div>
+                    <span class="text-white font-semibold text-lg tracking-wide">Assistant Pédagogique</span>
+                </div>
+                <div class="flex items-center gap-6">
+                    <a href="{{ path('app_dashboard') }}" class="text-blue-100 hover:text-white text-sm font-medium transition-colors">Tableau de Bord</a>
+                    <a href="{{ path('app_logout') }}" class="text-white bg-blue-800 hover:bg-blue-700 px-4 py-2 rounded text-sm font-medium transition-colors border border-blue-700">Déconnexion</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Sticky -->
+    <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30">
+        <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+            <div class="md:flex md:items-center md:justify-between">
+                <div class="min-w-0 flex-1">
+                    <h2 class="text-2xl font-bold leading-7 text-slate-900 sm:truncate sm:text-3xl sm:tracking-tight">{{ coursePlan.title }}</h2>
+                    <div class="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
+                        <div class="mt-2 flex items-center text-sm font-medium text-slate-500">
+                            <span class="uppercase tracking-wider text-xs font-bold text-slate-400 mr-2">Syllabus</span>
+                            {{ coursePlan.syllabus.title }}
+                        </div>
+                        <div class="mt-2 flex items-center text-sm font-medium text-slate-500">
+                            <span class="uppercase tracking-wider text-xs font-bold text-slate-400 mr-2">Volume</span>
+                            {{ coursePlan.expectedTotalHours }} heures
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 flex md:ml-4 md:mt-0 gap-3">
+                    <a href="{{ path('app_course_plan_pdf', {id: coursePlan.id}) }}" target="_blank" class="inline-flex items-center rounded bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm border border-slate-300 hover:bg-slate-50 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        EXPORT PDF
+                    </a>
+
+                    {% set hasDoneSession = false %}
+                    {% for session in coursePlan.sessions %}
+                        {% if session.isDone %} {% set hasDoneSession = true %} {% endif %}
+                    {% endfor %}
+
+                    {% if hasDoneSession %}
+                    <button onclick="adjustPlan({{ coursePlan.id }}, this)" class="inline-flex items-center rounded bg-slate-800 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-slate-700 transition-colors">
+                        RÉAJUSTER LE PLANNING (IA)
+                    </button>
+                    {% else %}
+                    <span class="inline-flex items-center rounded bg-slate-100 px-4 py-2 text-xs font-bold text-slate-400 border border-slate-200 cursor-not-allowed" title="Validez au moins une séance pour activer l'ajustement">
+                        RÉAJUSTEMENT IA (EN ATTENTE DE PROGRESSION)
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl py-8 sm:px-6 lg:px-8">
+        
+        <!-- KPI / Progress -->
+        {% set doneCount = 0 %}
+        {% for session in coursePlan.sessions %}
+            {% if session.isDone %} {% set doneCount = doneCount + 1 %} {% endif %}
+        {% endfor %}
+        {% set progress = (doneCount / coursePlan.sessions|length * 100)|round %}
+
+        <div class="mb-8 bg-white border border-slate-200 rounded p-6 shadow-sm flex items-center gap-6">
+            <div class="flex-1">
+                <div class="flex justify-between items-end mb-2">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Avancement Global</span>
+                    <span class="text-sm font-bold text-slate-900">{{ doneCount }} / {{ coursePlan.sessions|length }} séances</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                    <div class="bg-blue-600 h-3 rounded-full transition-all duration-500" style="width: {{ progress }}%"></div>
+                </div>
+            </div>
+            <div class="text-3xl font-bold text-blue-700">{{ progress }}%</div>
+        </div>
+
+        <!-- Sessions List -->
+        <div class="space-y-4">
+            {% for session in coursePlan.sessions|sort((a, b) => a.indexNumber <=> b.indexNumber) %}
+            <div class="group bg-white border border-slate-200 rounded shadow-sm hover:border-blue-300 transition-all duration-200">
+                <!-- Session Header -->
+                <div class="px-6 py-4 flex items-center justify-between bg-slate-50 border-b border-slate-100 rounded-t">
+                    <div class="flex items-center gap-4">
+                        <div class="flex-shrink-0 h-9 w-9 flex items-center justify-center rounded bg-white text-slate-700 font-bold border border-slate-200 shadow-sm text-sm">
+                            #{{ session.indexNumber }}
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900">{{ session.title }}</h3>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wide">{{ session.plannedDurationMinutes }} MIN</span>
+                        {% if session.isDone %}
+                            <span class="inline-flex items-center rounded bg-green-100 px-2.5 py-1 text-xs font-bold text-green-800 border border-green-200 uppercase tracking-wide">
+                                Terminé
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center rounded bg-slate-200 px-2.5 py-1 text-xs font-bold text-slate-600 border border-slate-300 uppercase tracking-wide">
+                                Cours
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Session Body -->
+                <div class="px-6 py-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                        <div>
+                            <h4 class="text-xs font-bold text-blue-800 uppercase tracking-widest mb-3 border-b border-blue-100 pb-1">Objectifs</h4>
+                            <ul class="space-y-2">
+                                {% for obj in session.objectives %}
+                                <li class="flex items-start gap-2 text-sm text-slate-700">
+                                    <svg class="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    {{ obj }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 border-b border-slate-100 pb-1">Contenu</h4>
+                            <ul class="space-y-2">
+                                {% for act in session.activities %}
+                                <li class="flex items-start gap-2 text-sm text-slate-600">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-slate-300 mt-1.5"></span>
+                                    {{ act }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+                    {% if session.isDone and session.actualNotes %}
+                    <div class="mt-4 bg-amber-50 border-l-4 border-amber-400 p-4">
+                        <h4 class="text-xs font-bold text-amber-800 uppercase mb-1">Compte-rendu</h4>
+                        <p class="text-sm text-amber-900">{{ session.actualNotes }}</p>
+                    </div>
+                    {% endif %}
+
+                            <!-- Exercises Section -->
+                            <div class="mt-6 border-t border-gray-100 pt-5">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <h4 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                            Exercices
+                                            <span class="bg-gray-100 text-gray-900 py-0.5 px-2 rounded-full text-xs border border-gray-200">{{ session.exercises|length }}</span>
+                                        </h4>
+                                        {% if session.exercises is not empty %}
+                                        <button onclick="toggleExercisesList({{ session.id }}, this)" class="text-xs text-gray-900 hover:text-blue-600 font-medium transition-colors flex items-center gap-1">
+                                            <svg class="w-5 h-5 transform transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                            <span>Masquer</span>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+
+                                    {% if not session.isDone %}
+                                    <button onclick="generateExercises({{ session.id }}, this)" class="text-xs bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-blue-600 px-3 py-1.5 rounded-md font-medium transition-colors shadow-sm">
+                                        + Générer de nouveaux exercices
+                                    </button>
+                                    {% endif %}
+                                </div>
+
+                                <div id="exercises-container-{{ session.id }}" class="block">
+                                    {% if session.exercises is not empty %}
+                                    <div class="grid grid-cols-1 gap-3">
+                                        {% for exercise in session.exercises %}
+                                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm hover:border-blue-200 transition-colors">
+                                            <div class="flex justify-between items-start mb-2">
+                                                <span class="font-bold text-gray-900">{{ exercise.title }}</span>
+                                                <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded border
+                                                    {% if exercise.difficulty == 'EASY' %}bg-green-50 text-green-700 border-green-200
+                                                    {% elseif exercise.difficulty == 'MEDIUM' %}bg-yellow-50 text-yellow-700 border-yellow-200
+                                                    {% else %}bg-red-50 text-red-700 border-red-200{% endif %}">
+                                                    {{ exercise.difficulty }}
+                                                </span>
+                                            </div>
+                                            <p class="text-gray-600 mb-3">{{ exercise.instruction }}</p>
+                                            <div class="text-xs text-gray-500 flex items-center justify-between border-t border-gray-200 pt-2">
+                                                <span class="font-medium">{{ exercise.expectedDurationMinutes }} min</span>
+                                                <details class="group cursor-pointer">
+                                                    <summary class="text-blue-600 hover:text-blue-800 font-medium list-none">Voir la correction</summary>
+                                                    <div class="mt-2 p-3 bg-white rounded border border-gray-200 text-gray-700 shadow-sm absolute z-10 max-w-md">
+                                                        <ul class="list-disc list-inside space-y-1">
+                                                            {% for point in exercise.correction %}
+                                                            <li>{{ point }}</li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                    </div>
+                                                </details>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% elseif not session.isDone %}
+                                    <p class="text-xs text-gray-400 italic">Aucun exercice pour le moment.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                </div>
+
+                <!-- Footer Action -->
+                {% if not session.isDone %}
+                <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-end">
+                    <button onclick="toggleNotes({{ session.id }})" class="rounded bg-white border border-slate-300 px-4 py-1.5 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-blue-700 transition-all">
+                        MARQUER COMME TERMINÉ
+                    </button>
+                </div>
+                
+                <!-- Validation Form -->
+                <div id="notes-form-{{ session.id }}" class="hidden bg-slate-100 px-6 py-5 border-t border-slate-200 shadow-inner">
+                    <label class="block text-sm font-bold text-slate-800 mb-2">Compte-rendu de séance</label>
+                    <textarea id="notes-{{ session.id }}" rows="3" class="block w-full rounded border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="Points abordés, difficultés rencontrées..."></textarea>
+                    <div class="mt-4 flex justify-end gap-3">
+                        <button onclick="toggleNotes({{ session.id }})" class="text-sm font-medium text-slate-500 hover:text-slate-800">Annuler</button>
+                        <button onclick="submitCompletion({{ session.id }})" class="rounded bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow hover:bg-slate-800">VALIDER</button>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <!-- Chat Widget Corporate -->
+    <div class="fixed bottom-6 right-6 z-50 print:hidden">
+        <button id="chat-toggle-btn" onclick="toggleChat()" class="bg-slate-900 hover:bg-slate-800 text-white rounded shadow-lg p-4 flex items-center gap-2 transition-all border border-slate-700">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+            <span class="font-bold text-sm uppercase tracking-wider">Assistant</span>
+        </button>
+
+        <div id="chat-window" class="hidden absolute bottom-16 right-0 w-96 bg-white rounded shadow-2xl border border-slate-200 flex flex-col" style="height: 550px;">
+            <div class="bg-slate-900 px-5 py-4 flex justify-between items-center rounded-t">
+                <span class="text-white font-bold text-sm uppercase tracking-wider">Assistant Pédagogique</span>
+                <button onclick="toggleChat()" class="text-slate-400 hover:text-white"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>
+            <div id="chat-messages" class="flex-1 p-5 overflow-y-auto bg-slate-50 space-y-4 text-sm">
+                <div class="bg-white border border-slate-200 text-slate-800 p-4 rounded-md shadow-sm max-w-[90%]">
+                    Bonjour. Je suis à votre disposition pour optimiser ce cours.
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-200 bg-white">
+                <form onsubmit="sendChatMessage(event)" class="flex gap-2">
+                    <input type="text" id="chat-input" placeholder="Votre demande..." class="flex-1 rounded border-slate-300 text-sm focus:border-blue-500 focus:ring-blue-500 p-2">
+                    <button type="submit" id="chat-send-btn" class="bg-blue-700 text-white px-4 py-2 rounded text-sm font-bold hover:bg-blue-600 uppercase tracking-wide">Envoyer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Logique JS conservée
+    function toggleChat() {
+        const win = document.getElementById('chat-window');
+        win.classList.toggle('hidden');
+        if(!win.classList.contains('hidden')) setTimeout(() => document.getElementById('chat-input').focus(), 100);
+    }
+    
+    async function sendChatMessage(e) {
+        e.preventDefault();
+        const input = document.getElementById('chat-input');
+        const message = input.value.trim();
+        const messagesDiv = document.getElementById('chat-messages');
+        const sendBtn = document.getElementById('chat-send-btn');
+        const coursePlanId = {{ coursePlan.id }};
+        if(!message) return;
+
+        messagesDiv.innerHTML += `<div class="flex justify-end"><div class="bg-blue-600 text-white p-3 rounded-md shadow-sm max-w-[90%]">${message}</div></div>`;
+        input.value = ''; messagesDiv.scrollTop = messagesDiv.scrollHeight; sendBtn.disabled = true;
+
+        const loadingId = 'loading-' + Date.now();
+        messagesDiv.innerHTML += `<div id="${loadingId}" class="bg-slate-200 text-slate-500 p-2 rounded-md w-16 text-center text-xs animate-pulse">...</div>`;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+        try {
+            const response = await fetch('/ai/chat/' + coursePlanId, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message })
+            });
+            const data = await response.json();
+            document.getElementById(loadingId).remove();
+            if(response.ok) {
+                messagesDiv.innerHTML += `<div class="bg-white border border-slate-200 text-slate-800 p-4 rounded-md shadow-sm max-w-[90%] prose prose-sm prose-slate">${data.response.replace(/\n/g, '<br>')}</div>`;
+            } else {
+                messagesDiv.innerHTML += `<div class="bg-red-50 text-red-700 p-3 rounded border border-red-200 text-xs">Erreur: ${data.error}</div>`;
+            }
+        } catch(err) {
+            document.getElementById(loadingId).remove();
+            messagesDiv.innerHTML += `<div class="bg-red-50 text-red-700 p-3 rounded border border-red-200 text-xs">Erreur réseau</div>`;
+        }
+        sendBtn.disabled = false; messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function toggleNotes(id) { document.getElementById('notes-form-' + id).classList.toggle('hidden'); }
+    
+    async function submitCompletion(id) {
+        const notes = document.getElementById('notes-' + id).value;
+        try {
+            const r = await fetch('/api/sessions/' + id + '/complete', { method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ actualNotes: notes }) });
+            if(r.ok) location.reload();
+            else alert("Erreur validation");
+        } catch(e) { alert("Erreur réseau"); }
+    }
+
+    async function adjustPlan(id, btn) {
+        if(!confirm("Réajuster le planning selon l'avancement ?")) return;
+        btn.disabled = true; btn.innerText = "CALCUL...";
+        try {
+            const r = await fetch('/ai/update-course-plan/' + id, { method: 'POST' });
+            if(r.ok) location.reload();
+            else { alert("Erreur"); btn.disabled = false; btn.innerText = "RÉAJUSTER LE PLANNING (IA)"; }
+        } catch(e) { alert("Erreur réseau"); btn.disabled = false; }
+    }
+
+    async function generateExercises(sessionId, btn) {
+        if (!confirm("Générer automatiquement des exercices pour cette séance ?")) return;
+
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = "Création...";
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+        try {
+            const response = await fetch('/ai/generate-exercises/' + sessionId, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                alert("✅ " + data.count + " exercices générés avec succès !");
+                location.reload();
+            } else {
+                const data = await response.json();
+                alert("❌ Erreur : " + (data.error || "Problème lors de la génération"));
+                btn.innerText = originalText;
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        } catch (e) {
+            console.error(e);
+            alert("❌ Erreur réseau");
+            btn.innerText = originalText;
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    }
+
+    function toggleExercisesList(id, btn) {
+        const container = document.getElementById('exercises-container-' + id);
+        const icon = btn.querySelector('svg');
+        const text = btn.querySelector('span');
+        
+        if (container.classList.contains('hidden')) {
+            container.classList.remove('hidden');
+            text.innerText = "Masquer";
+            icon.style.transform = 'rotate(0deg)';
+        } else {
+            container.classList.add('hidden');
+            text.innerText = "Afficher";
+            icon.style.transform = 'rotate(180deg)';
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,248 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de Bord{% endblock %}
+
+{% block body %}
+<div class="min-h-full bg-slate-50">
+    <!-- Navbar Corporate : Bleu Roi Profond -->
+    <nav class="bg-blue-900 shadow-md">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="flex h-16 items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <!-- Petit logo textuel simple -->
+                    <div class="bg-white/10 p-2 rounded text-white font-bold tracking-widest text-xs uppercase">
+                        AP
+                    </div>
+                    <span class="text-white font-semibold text-lg tracking-wide">Assistant Pédagogique</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-4 flex items-center gap-6">
+                        <span class="text-blue-100 text-sm font-medium">{{ app.user.email }}</span>
+                        <a href="{{ path('app_logout') }}"
+                            class="text-white bg-blue-800 hover:bg-blue-700 px-4 py-2 rounded text-sm font-medium transition-colors shadow-sm border border-blue-700">Déconnexion</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Blanc avec Actions -->
+    <header class="bg-white shadow-sm border-b border-slate-200">
+        <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight text-slate-900">Espace de Travail</h1>
+                <p class="text-slate-500 mt-2 text-sm">Gérez vos syllabus et suivez l'avancement de vos formations.</p>
+            </div>
+            <a href="{{ path('app_syllabus_new') }}"
+                class="rounded bg-blue-700 px-5 py-2.5 text-sm font-bold text-white shadow hover:bg-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-all flex items-center gap-2">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                NOUVEAU SYLLABUS
+            </a>
+        </div>
+    </header>
+
+    <main class="py-10">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            {% if syllabi is empty %}
+            <div class="text-center py-16 bg-white rounded shadow-sm border border-slate-200">
+                <div class="mx-auto h-16 w-16 bg-slate-100 rounded-full flex items-center justify-center mb-4 text-slate-400">
+                    <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <h3 class="mt-2 text-lg font-medium text-slate-900">Aucun cours disponible</h3>
+                <p class="mt-1 text-sm text-slate-500">Commencez par importer votre premier syllabus.</p>
+            </div>
+            {% else %}
+            <!-- Grille de Cartes "Pro" -->
+            <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                {% for syllabus in syllabi %}
+                <div class="group relative flex flex-col bg-white rounded shadow-sm border border-slate-200 hover:shadow-lg hover:border-blue-300 transition-all duration-300 overflow-hidden">
+                    
+                    <!-- Top Border Color -->
+                    <div class="absolute top-0 left-0 w-full h-1 bg-blue-600 group-hover:h-1.5 transition-all"></div>
+
+                    <div class="px-6 py-6 flex-1">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-lg font-bold text-slate-900 leading-tight group-hover:text-blue-700 transition-colors">
+                                {{ syllabus.title }}
+                            </h3>
+                            <span class="inline-flex items-center rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 border border-slate-200">
+                                {{ syllabus.createdAt|date('d/m/Y') }}
+                            </span>
+                        </div>
+                        
+                        <!-- Contenu -->
+                        <div class="text-sm text-slate-600 mb-6">
+                            {% if syllabus.extractedCompetences is not empty %}
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Compétences</p>
+                                <div class="flex flex-wrap gap-2">
+                                    {% for comp in syllabus.extractedCompetences|slice(0, 3) %}
+                                        <span class="inline-flex items-center rounded bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-800 border border-blue-100">
+                                            {{ comp }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="line-clamp-3 text-slate-500 italic">{{ syllabus.rawText|slice(0, 150) }}...</p>
+                                <button onclick="analyzeSyllabus({{ syllabus.id }}, this)" class="mt-3 text-xs font-bold text-blue-700 hover:text-blue-900 uppercase tracking-wide flex items-center gap-1">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                    Lancer l'analyse du Syllabus
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Footer Actions -->
+                    <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 mt-auto">
+                        {% if syllabus.coursePlan %}
+                        <a href="{{ path('app_course_plan_show', {id: syllabus.coursePlan.id}) }}"
+                            class="flex w-full justify-center items-center rounded border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-blue-700 transition-colors">
+                            ACCÉDER AU COURS
+                        </a>
+                        {% else %}
+                        <button onclick="generatePlan({{ syllabus.id }}, this)"
+                            class="flex w-full justify-center items-center rounded bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow hover:bg-slate-800 transition-colors">
+                            GÉNÉRER LE COURS(Plan et Exo)
+                        </button>
+                        {% endif %}
+
+                        <!-- Feedback -->
+                        <div id="feedback-{{ syllabus.id }}" class="mt-3 hidden text-center">
+                            <div class="loader hidden text-blue-700 text-xs font-semibold flex items-center justify-center gap-2">
+                                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                TRAITEMENT EN COURS...
+                            </div>
+                            <div class="success hidden text-green-700 text-xs font-bold">PLAN CRÉÉ AVEC SUCCÈS</div>
+                            <div class="error hidden text-red-700 text-xs font-bold">ERREUR TECHNIQUE</div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Chat Widget Corporate (Généraliste) -->
+    <div class="fixed bottom-6 right-6 z-50 print:hidden">
+        <button id="chat-toggle-btn" onclick="toggleChat()" class="bg-slate-900 hover:bg-slate-800 text-white rounded shadow-lg p-4 flex items-center gap-2 transition-all border border-slate-700">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+            <span class="font-bold text-sm uppercase tracking-wider">Assistant</span>
+        </button>
+
+        <div id="chat-window" class="hidden absolute bottom-16 right-0 w-96 bg-white rounded shadow-2xl border border-slate-200 flex flex-col" style="height: 550px;">
+            <div class="bg-slate-900 px-5 py-4 flex justify-between items-center rounded-t">
+                <div class="flex flex-col">
+                    <span class="text-white font-bold text-sm uppercase tracking-wider">Assistant Pédagogique</span>
+                    <span class="text-blue-200 text-[10px] uppercase tracking-wide">Mode Généraliste</span>
+                </div>
+                <button onclick="toggleChat()" class="text-slate-400 hover:text-white"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>
+            <div id="chat-messages" class="flex-1 p-5 overflow-y-auto bg-slate-50 space-y-4 text-sm">
+                <div class="bg-white border border-slate-200 text-slate-800 p-4 rounded-md shadow-sm max-w-[90%]">
+                    Bonjour ! Je suis votre assistant pédagogique généraliste. Posez-moi vos questions sur la méthode, la gestion de classe ou la pédagogie.
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-200 bg-white">
+                <form onsubmit="sendChatMessage(event)" class="flex gap-2">
+                    <input type="text" id="chat-input" placeholder="Votre demande..." class="flex-1 rounded border-slate-300 text-sm focus:border-blue-500 focus:ring-blue-500 p-2">
+                    <button type="submit" id="chat-send-btn" class="bg-blue-700 text-white px-4 py-2 rounded text-sm font-bold hover:bg-blue-600 uppercase tracking-wide">Envoyer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleChat() {
+        const win = document.getElementById('chat-window');
+        win.classList.toggle('hidden');
+        if (!win.classList.contains('hidden')) setTimeout(() => document.getElementById('chat-input').focus(), 100);
+    }
+    
+    async function sendChatMessage(e) {
+        e.preventDefault();
+        const input = document.getElementById('chat-input');
+        const message = input.value.trim();
+        const messagesDiv = document.getElementById('chat-messages');
+        const sendBtn = document.getElementById('chat-send-btn');
+        if (!message) return;
+
+        messagesDiv.innerHTML += `<div class="flex justify-end"><div class="bg-blue-600 text-white p-3 rounded-md shadow-sm max-w-[90%]">${message}</div></div>`;
+        input.value = ''; messagesDiv.scrollTop = messagesDiv.scrollHeight; sendBtn.disabled = true;
+
+        const loadingId = 'loading-' + Date.now();
+        messagesDiv.innerHTML += `<div id="${loadingId}" class="bg-slate-200 text-slate-500 p-2 rounded-md w-16 text-center text-xs animate-pulse">...</div>`;
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+        try {
+            // Appel sans ID pour le mode généraliste
+            const response = await fetch('/ai/chat/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message })
+            });
+            const data = await response.json();
+            document.getElementById(loadingId).remove();
+            if(response.ok) {
+                messagesDiv.innerHTML += `<div class="bg-white border border-slate-200 text-slate-800 p-4 rounded-md shadow-sm max-w-[90%] prose prose-sm prose-slate">${data.response.replace(/\n/g, '<br>')}</div>`;
+            } else {
+                messagesDiv.innerHTML += `<div class="bg-red-50 text-red-700 p-3 rounded border border-red-200 text-xs">Erreur: ${data.error}</div>`;
+            }
+        } catch(err) {
+            if (document.getElementById(loadingId)) document.getElementById(loadingId).remove();
+            messagesDiv.innerHTML += `<div class="bg-red-50 text-red-700 p-3 rounded border border-red-200 text-xs">Erreur réseau</div>`;
+        }
+        sendBtn.disabled = false; messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+    async function analyzeSyllabus(id, btn) {
+        const originalText = btn.innerText;
+        btn.innerText = "Analyse...";
+        btn.disabled = true;
+        try {
+            const response = await fetch('/ai/analyze-syllabus/' + id, { method: 'POST' });
+            if (response.ok) location.reload();
+            else { alert("Erreur lors de l'analyse"); btn.innerText = originalText; btn.disabled = false; }
+        } catch (e) { console.error(e); alert("Erreur réseau"); btn.innerText = originalText; btn.disabled = false; }
+    }
+
+    async function generatePlan(id, btn) {
+        if (!confirm("Générer le plan de cours ?")) return;
+
+        const feedback = document.getElementById('feedback-' + id);
+        const loader = feedback.querySelector('.loader');
+        const success = feedback.querySelector('.success');
+        const error = feedback.querySelector('.error');
+
+        btn.style.display = 'none';
+        feedback.classList.remove('hidden');
+        loader.classList.remove('hidden');
+        success.classList.add('hidden');
+        error.classList.add('hidden');
+
+        try {
+            const response = await fetch('/ai/generate-course-plan/' + id, { method: 'POST' });
+            const data = await response.json();
+            loader.classList.add('hidden');
+
+            if (response.ok) {
+                success.classList.remove('hidden');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                error.textContent = "Erreur : " + (data.error || "Erreur inconnue");
+                error.classList.remove('hidden');
+                btn.style.display = 'flex';
+                btn.disabled = false;
+            }
+        } catch (e) {
+            console.error(e);
+            loader.classList.add('hidden');
+            error.textContent = "Erreur réseau";
+            error.classList.remove('hidden');
+            btn.style.display = 'flex';
+            btn.disabled = false;
+        }
+    }
+</script>
+{% endblock %}
