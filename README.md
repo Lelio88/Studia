@@ -33,6 +33,8 @@ Il permet d'importer un syllabus, de générer automatiquement un plan de cours 
 ### Prérequis
 *   Docker
 *   Docker Compose
+*   PHP 8.2+
+*   Composer
 
 ### Étapes
 
@@ -57,19 +59,21 @@ Il permet d'importer un syllabus, de générer automatiquement un plan de cours 
 
 4.  **Installer les dépendances**
     ```bash
-    docker compose exec app composer install
+    composer install
     ```
 
 5.  **Préparer la base de données**
     ```bash
-    docker compose exec app php bin/console doctrine:migrations:migrate
+    php bin/console doctrine:database:create
+    php bin/console make:migration
+    php bin/console doctrine:migrations:migrate
     ```
 
 6.  **Compiler les assets (Tailwind)**
     ```bash
-    docker compose exec app php bin/console tailwind:build
+    php bin/console tailwind:build
     # Ou pour le mode watch :
-    # docker compose exec app php bin/console tailwind:build --watch
+    # php bin/console tailwind:build --watch
     ```
 
 Accédez à l'application sur `http://localhost`.
@@ -91,7 +95,7 @@ Accédez à l'application sur `http://localhost`.
 
 Le projet inclut des tests unitaires et fonctionnels (si implémentés).
 ```bash
-docker compose exec app php bin/console test
+php bin/console test
 ```
 
 ---
