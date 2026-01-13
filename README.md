@@ -87,7 +87,15 @@ Accédez à l'application sur `http://localhost`.
 3.  Uploadez votre PDF de cours ou copiez le texte.
 4.  Cliquez sur **"🔍 Analyser"** pour voir les compétences détectées.
 5.  Cliquez sur **"✨ Générer le Plan IA"** pour créer les séances.
-6.  Ouvrez le plan de cours pour valider vos séances, générer des exercices ou discuter avec l'assistant.
+6. Ouvrez le plan de cours pour valider vos séances, générer des exercices ou discuter avec l'assistant.
+
+---
+
+## 🔌 API Documentation
+
+L'application expose également une API REST documentée via **API Platform**. Pour accéder à l'interface Swagger et explorer les endpoints, rendez-vous sur :
+
+`http://localhost/api`
 
 ---
 
