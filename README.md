@@ -91,13 +91,4 @@ Accédez à l'application sur `http://localhost`.
 
 ---
 
-## 🧪 Tests
-
-Le projet inclut des tests unitaires et fonctionnels (si implémentés).
-```bash
-php bin/console test
-```
-
----
-
 **Projet réalisé dans le cadre du module Développement Web Avancé.**
